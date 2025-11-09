@@ -1,0 +1,149 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fb4b24cf-2170-4bea-bdd7-77f715c019c6",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1c9bca60-9ed4-41d7-b898-da0fcbfbbfdc",
+      "name": "Webhook",
+      "webhookId": "fb4b24cf-2170-4bea-bdd7-77f715c019c6"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a logistics assistant. Answer the driver's question using ONLY the provided orders JSON. Be brief and direct. If the information is not in the JSON, state that you could not find it.\n\n--- START OF DATA ---\n{{ $json.default_data }}\n--- END OF DATA ---\n\nDriver's Question: {{ $json.body.Body }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "50c33788-6244-4c67-9b51-42ec71537ba8",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "64EWEaJ8BUyhf4Q4",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0c92984b-4500-408e-93c4-ebf1d32c2c25",
+              "name": "default_data",
+              "value": "{\n  \"driver_id\": \"MOT-789\",\n  \"driver_name\": \"Carlos Silva\",\n  \"summary_date\": \"2025-11-10\",\n  \"total_orders\": 3,\n  \"orders\": [\n    {\n      \"order_id\": \"BRS-1001\",\n      \"status\": \"Pending\",\n      \"customer\": {\n        \"name\": \"Ana Costa\"\n      },\n      \"customer_address\": {\n        \"street\": \"Rua das Flores\",\n        \"number\": \"123\",\n        \"complement\": \"Apto 45\",\n        \"neighborhood\": \"Centro\",\n        \"city\": \"São Paulo\",\n        \"state\": \"SP\",\n        \"zipcode\": \"01000-001\"\n      },\n      \"delivery_window\": \"09:00 - 11:00\",\n      \"notes\": \"Be careful, fragile.\"\n    },\n    {\n      \"order_id\": \"BRS-1002\",\n      \"status\": \"Pending\",\n      \"customer\": {\n        \"name\": \"Bruno Mendes\"\n      },\n      \"customer_address\": {\n        \"street\": \"Avenida Paulista\",\n        \"number\": \"1500\",\n        \"complement\": \"Escritório 801\",\n        \"neighborhood\": \"Bela Vista\",\n        \"city\": \"São Paulo\",\n        \"state\": \"SP\",\n        \"zipcode\": \"01310-100\"\n      },\n      \"delivery_window\": \"11:00 - 13:00\",\n      \"notes\": \"\"\n    },\n    {\n      \"order_id\": \"BRS-1003\",\n      \"status\": \"Pending\",\n      \"customer\": {\n        \"name\": \"Loja TechTudo\"\n      },\n      \"customer_address\": {\n        \"street\": \"Rua Augusta\",\n        \"number\": \"998\",\n        \"complement\": \"\",\n        \"neighborhood\": \"Consolação\",\n        \"city\": \"São Paulo\",\n        \"state\": \"SP\",\n        \"zipcode\": \"01304-001\"\n      },\n      \"delivery_window\": \"14:00 - 16:00\",\n      \"notes\": \"Deliver to the back dock.\"\n    }\n  ]\n}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "0920b7b4-3c66-4b12-95a7-28029bc48b24",
+      "name": "Set fields"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=<Response>\n    <Message>{{ $json.content.parts[0].text }}</Message>\n</Response>",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/xml"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        736,
+        0
+      ],
+      "id": "2c25cf2a-e4c0-4cae-bc10-03f901c94266",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set fields": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8f3cead3-fd66-4fc5-b718-fedfb6ef4466",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "961d19b25ac1d5fb2352d0e2694c06983ed6360c6f9d17be56e7988352271ad9"
+  },
+  "id": "f1UObKLtCcpb4XMT",
+  "tags": []
+}
